@@ -72,11 +72,32 @@ class RackBox
         input = RackBox.build_query options[:params]
       end
 
+      # add HTTP BASIC AUTH support
+      #
+      # TODO: DRY this up!
+      #
+      if options[:auth]
+        options[:http_basic_authentication] = options[:auth]
+        options.delete :auth
+      end
+      if options[:basic_auth]
+        options[:http_basic_authentication] = options[:basic_auth]
+        options.delete :basic_auth
+      end
+      if options[:http_basic_authentication]
+        username, password = options[:http_basic_authentication]
+        options.delete :http_basic_authentication
+        require 'base64'
+        # for some reason, nase64 encoding adds a \n
+        encoded_username_and_password = Base64.encode64("#{ username }:#{ password }").sub(/\n$/, '')
+        options['HTTP_AUTHORIZATION'] = "Basic #{ encoded_username_and_password }"
+      end
+
       headers = options.dup
       headers.delete :data   if headers[:data]
       headers.delete :params if headers[:params]
       headers.delete :method if headers[:method]
-      
+
       # merge input
       headers[:input] = input
       
