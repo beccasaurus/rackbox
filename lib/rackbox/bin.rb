@@ -32,6 +32,10 @@ class RackBox::Bin
       rackbox --data '<XML>'     # POST data to / path
       rackbox /dogs --xml        # get /dogs, accepting xml
 
+    Options:
+      -a, --app "MyApp.new"      # ruby to eval to get Rack app
+      -r, --require file[.rb]    # ruby file(s) to require
+
     Further help:
       rackbox commands         # list all available commands
       rackbox help <COMMAND>   # show help for COMMAND
@@ -74,6 +78,17 @@ Usage: #{ script_name } request '/some/path'
 doco
   end
   def request *args
+
+    # if args is ampty, we likely just called: $ rackbox
+    # which came to #request because it's the default command, 
+    # so we should print out the usage for rackbox and exit
+    if args.empty?
+      usage
+      exit
+    end
+
+    set_rackbox_app args
+
     options = {
       :show => [],
       :headers => {}
@@ -93,13 +108,14 @@ doco
 
     rackbox_options = { }
     rackbox_options[:method] = options[:method] if options[:method]
-    rackbox_options[:data]   = options[:data] if options[:data]
+    rackbox_options[:data]   = options[:data]   if options[:data]
 
     options[:headers].each do |name, value|
       rackbox_options[name] = value
     end
 
     url = args.pop
+
     response = RackBox.request url, rackbox_options
     options[:show] = %w( body headers status ) if options[:show].empty?
 
@@ -125,8 +141,43 @@ Usage: #{ script_name } info
   end
 doco
   end
-  def info
-    puts "RackBox.app => #{ RackBox.app.inspect }"
+  def info *args
+    set_rackbox_app args
+    puts "RackBox.app => #{ RackBox.app( :silent => true ).inspect }"
+  end
+
+  private
+
+  #
+  # we let users pass a ruby string that will return 
+  # the rack app to be used, eg.
+  #
+  # you can also set files to be required ( -r  )
+  #
+  # $ rackbox -r myapp.rb --app 'lambda {|env| [200, {}, "hi!"] }' info
+  # $ rackbox -r myapp.rb,another-file.rb --app 'Sinatra::Application' get '/'
+  # $ rackbox -r myapp --app 'MyApp.new' '/'
+  #
+  def set_rackbox_app args
+    files_to_require = []
+    ruby_to_run      = nil
+
+    opts = OptionParser.new do |opts|
+      opts.on('-r', '--require [file]') {|x| files_to_require << x }
+      opts.on('-a', '--app [ruby]')     {|x| ruby_to_run = x       }
+    end 
+    opts.parse! args
+    
+    files_to_require.each {|file| require file }
+
+    if ruby_to_run
+      begin
+        RackBox.app = eval(ruby_to_run)
+      rescue Exception => ex
+        puts "tried running Ruby code to set RackBox app: #{ ruby_to_run.inspect }"
+        raise ex
+      end
+    end
   end
 
 end

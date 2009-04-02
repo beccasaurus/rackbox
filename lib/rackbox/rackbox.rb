@@ -94,27 +94,39 @@ class RackBox
     # If not explicitly set, uses RAILS_ROOT (if defined?) and RAILS_ENV (if defined?)
     attr_accessor :app
 
-    def app
+    def app options = { }
       unless @app and @app.respond_to?:call
-        
+
+        options = {
+          :silent => false
+        }.merge(options)
+
         if File.file? 'config.ru'
           @app = Rack::Builder.new { eval(File.read('config.ru')) }
         
         elsif defined?RAILS_ENV and defined?RAILS_ROOT
-          raise "You need the Rack::Adapter::Rails to run Rails apps with RackBox." + 
-                " Try: sudo gem install thin" unless defined?Rack::Adapter::Rails
-          @app = Rack::Adapter::Rails.new :root => RAILS_ROOT, :environment => RAILS_ENV
+          unless defined?Rack::Adapter::Rails
+            # TODO this is no longer true ... right?  does rails < 2.3 work without Thin
+            puts "You need the Rack::Adapter::Rails to run Rails apps with RackBox." + 
+                 " Try: sudo gem install thin" unless options[:silent]
+          else
+            @app = Rack::Adapter::Rails.new :root => RAILS_ROOT, :environment => RAILS_ENV
+          end
 
         elsif File.file?('config/routes.rb') && File.file?('config/environment.rb')
-          raise "You need the Rack::Adapter::Rails to run Rails apps with RackBox." + 
-                " Try: sudo gem install thin" unless defined?Rack::Adapter::Rails
-          @app = Rack::Adapter::Rails.new :root => '.', :environment => 'development'
+          unless defined?Rack::Adapter::Rails
+            puts "You need the Rack::Adapter::Rails to run Rails apps with RackBox." + 
+                 " Try: sudo gem install thin" unless options[:silent]
+          else
+            @app = Rack::Adapter::Rails.new :root => '.', :environment => 'development'
+          end
         
         else
-          raise "RackBox.app not configured."
+          puts "RackBox.app not configured." unless options[:silent]
         
         end
       end
+
       @app
     end
 
