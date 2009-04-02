@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rackbox}
-  s.version = "1.1.4"
+  s.version = "1.1.5"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["remi"]
-  s.date = %q{2009-03-14}
+  s.date = %q{2009-04-01}
   s.default_executable = %q{rackbox}
   s.description = %q{Merb-like BlackBox testing for Rack apps, including Rails}
   s.email = %q{remi@remitaylor.com}
