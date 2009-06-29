@@ -109,6 +109,7 @@ TODO
 
 see [RackBox][]'s [Lighthouse Tickets](http://remitaylor.lighthouseapp.com/projects/27570-rackbox)
 * look at using Rack::Cookies as a cookie jar instead of doing it ourselves
+* look at Rack::NestedParams and see if it can replace our own logic
 
 
 [rackbox]:    http://github.com/remi/rackbox
