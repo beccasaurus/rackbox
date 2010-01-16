@@ -5,6 +5,15 @@ RackBox
 
 This currently only works with [RSpec][].
 
+DEPRECATED
+----------
+
+**NOTE**: Although I really love the RackBox syntax (which was stolen from Merb's request spec), 
+rack-test has gotten much more love than RackBox and I haven't had time to refactor RackBox.
+
+I recommend using rack-test instead!  RackBox will likely be ported to a rack-test extension 
+that provides the syntax I enjoy.
+
 Screencast
 ----------
 
